@@ -42,7 +42,7 @@ where
     A: Send + 'static,
     W: Fn(&T, A) -> Box<Future<Item = (), Error = RE> + Send> + Send + Sync + 'static,
     C: Fn() -> Box<Future<Item = T, Error = CE> + Send> + Send + Sync + 'static,
-    T: Clone + Send + Sync + 'static,
+    T: Clone + std::fmt::Debug + Send + Sync + 'static,
     RE: std_error::Error + 'static,
     CE: std_error::Error + 'static,
 {
@@ -66,7 +66,7 @@ use self::ReconnectState::*;
 impl<A, T, RE, CE> Reconnect<A, T, RE, CE>
 where
     A: Send + 'static,
-    T: Clone + Send + Sync + 'static,
+    T: Clone + std::fmt::Debug + Send + Sync + 'static,
     RE: std_error::Error + 'static,
     CE: std_error::Error + 'static,
 {
@@ -128,7 +128,7 @@ where
         let connect_f = Timeout::new(connect_f, Duration::from_secs(30)).then(move |t| {
             let mut state = reconnect.state.write().expect("Cannot obtain write lock");
             let result = match *state {
-                NotConnected | Connecting => match t {
+                NotConnected | Connecting => match dbg!(t) {
                     Ok(t) => {
                         info!("Connection established");
                         *state = Connected(t);
